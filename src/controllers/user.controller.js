@@ -108,7 +108,7 @@ const loginUser = asyncHandler(async (req, res) =>{
 
     const {email, username, password} = req.body
     console.log(email);
-
+    
     if (!username && !email) {
         throw new ApiError(400, "username or email is required")
     }
@@ -268,6 +268,7 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
     if (!fullName || !email) {
         throw new ApiError(400, "All fields are required")
     }
+
 
     const user = await User.findByIdAndUpdate(
         req.user?._id,
@@ -430,7 +431,7 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user._id)
+                _id: mongoose.Types.ObjectId(req.user._id)
             }
         },
         {

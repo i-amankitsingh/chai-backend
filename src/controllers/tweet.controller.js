@@ -6,11 +6,43 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 
 const createTweet = asyncHandler(async (req, res) => {
+
+    const { content } = req.body
+
+    if(!content){
+        throw new ApiError(401, "Empty tweet, please write something in tweet.")
+    }
+
+    const tweet = await Tweet.create({
+        content,
+        owner: req.user?._id
+    })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, tweet, "Tweet created successfully")
+    )
     //TODO: create tweet
 })
 
 const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
+
+    const { userId } = req.params
+
+    if(!userId){
+        throw new ApiError(401, "Invalid user ID!")
+    }
+
+    const tweet = await Tweet.findById(userId)
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, tweet, "Tweet fetched successfully")
+    )
+
 })
 
 const updateTweet = asyncHandler(async (req, res) => {
