@@ -6,9 +6,33 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
-    const {videoId} = req.params
-    const {page = 1, limit = 10} = req.query
+    const { videoId } = req.params
+    let {page = 1, limit = 10, sortBy = 'createdAt', sortType = 'asc'} = req.query
     
+    sortType = sortType === 'desc' ? -1 : 1;
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortType
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const comments = await Comment.find().sort(sortOptions).skip(skip).limit(parseInt(limit))
+
+    if(!comments.length){
+        throw new ApiError(400, "No comments found!")
+    }
+
+    const totalComment = await Comment.countDocuments()
+
+    if(!totalComment){
+        throw new ApiResponse(400, "No comments found!")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, {totalComment, comments}, "Comments fetched successfully!")
+    )
 
 })
 
@@ -65,7 +89,7 @@ const updateComment = asyncHandler(async (req, res) => {
     return res
     .status(200)
     .json(
-        new ApiResponse(200,comment, "Comment updated succesfully" )
+        new ApiResponse(200, comment, "Comment updated succesfully" )
     )
 })
 
@@ -77,16 +101,12 @@ const deleteComment = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid comment ID!")
     }
 
-    await Comment.findByIdAndDelete(commentId, (err, doc) => {
-        if(err){
-             throw new ApiError(500, "Failed to delete comment")
-        }
-    })
+    await Comment.findByIdAndDelete(commentId)
 
     return res
     .status(200)
     .json(
-        new ApiResponse(200, "Comment deleted successfully")
+        new ApiResponse(200, {}, "Comment deleted successfully")
     )
  
     // TODO: delete a comment
