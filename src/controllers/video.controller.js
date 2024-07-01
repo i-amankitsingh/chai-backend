@@ -71,7 +71,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     const videoFile = await uploadOnCloudinary(videoFileLocalPath)
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath)
 
-    console.log("cloudinary data :: ", videoFile)
+    // console.log("cloudinary data :: ", videoFile)
 
     if (!videoFile || !thumbnail) {
         throw new ApiError(500, "Something went wrong white fetching video and thumbnail from cloud!")
