@@ -4,7 +4,7 @@ import { User } from "../models/user.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { destroyCloudinaryImage, destroyCloudinaryVideo, uploadOnCloudinary } from "../utils/cloudinary.js"
 
 
 
@@ -71,13 +71,21 @@ const publishAVideo = asyncHandler(async (req, res) => {
     const videoFile = await uploadOnCloudinary(videoFileLocalPath)
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath)
 
+    console.log("cloudinary data :: ", videoFile)
+
     if (!videoFile || !thumbnail) {
         throw new ApiError(500, "Something went wrong white fetching video and thumbnail from cloud!")
     }
 
     const videoData = await Video.create({
-        videoFile: videoFile.url,
-        thumbnail: thumbnail.url,
+        videoFile: {
+            url: videoFile.playback_url,
+            publicId: videoFile.public_id
+        },
+        thumbnail: {
+            url: thumbnail.secure_url,
+            publicId: thumbnail.public_id
+        },
         title,
         description,
         duration: videoFile.duration,
@@ -147,13 +155,20 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Something went wrong while fetching thumbnail from cloud!")
     }
 
+    // const oldThumbnail = video.thumbnail
+
+    await destroyCloudinaryImage(video.thumbnail.publicId)
+
     const videoData = await Video.findByIdAndUpdate(
         videoId,
         {
             $set: {
                 title,
                 description,
-                thumbnail: thumbnail.url
+                thumbnail: {
+                    url: thumbnail.secure_url,
+                    publicId: thumbnail.public_id
+                }
             }
         },
         { new: true }
@@ -177,16 +192,25 @@ const deleteVideo = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid video id")
     }
 
-    await Video.findByIdAndDelete(videoId, (err, doc) => {
-        if (err) {
-            throw new ApiError(500, "Failed to delete video")
-        }
-    })
+    const video = await Video.findById(videoId)
+
+    if(!video){
+        throw new ApiError(404, "Video not found!")
+    }
+
+    const thumbnailPublicId = video.thumbnail.publicId
+    const videoPublicId = video.videoFile.publicId
+
+    await Video.findByIdAndDelete(videoId)
+
+
+    const imageDelete = await destroyCloudinaryImage(thumbnailPublicId)
+    const videoDelete = await destroyCloudinaryVideo(videoPublicId)
 
     return res
         .status(200)
         .json(
-            new ApiResponse(200, {}, "Video deleted successfully")
+            new ApiResponse(200, {imageDelete, videoDelete}, "Video deleted successfully")
         )
 
     //TODO: delete video

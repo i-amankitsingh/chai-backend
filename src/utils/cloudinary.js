@@ -27,5 +27,36 @@ const uploadOnCloudinary = async (localFilePath) => {
 }
 
 
+const destroyCloudinaryImage = async(publicId) => {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader.destroy(publicId, { resource_type: 'image' }, (error, result) => {
+            if(error){
+                reject(error)
+            }
+            else{
+                resolve(result)
+            }
+        })
+    })
+}
 
-export {uploadOnCloudinary}
+const destroyCloudinaryVideo = async(publicId) => {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader.destroy(publicId, { resource_type: 'video' }, (error, result) => {
+            if(error){
+                reject(error)
+            }
+            else{
+                resolve(result)
+            }
+        })
+    })
+}
+
+
+
+export {
+    uploadOnCloudinary,
+    destroyCloudinaryImage,
+    destroyCloudinaryVideo
+}

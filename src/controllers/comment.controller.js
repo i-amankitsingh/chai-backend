@@ -16,7 +16,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
 
-    const comments = await Comment.find().sort(sortOptions).skip(skip).limit(parseInt(limit))
+    const comments = await Comment.find({video: videoId}).sort(sortOptions).skip(skip).limit(parseInt(limit))
 
     if(!comments.length){
         throw new ApiError(400, "No comments found!")
