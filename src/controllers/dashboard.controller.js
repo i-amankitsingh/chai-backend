@@ -9,8 +9,8 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 const getChannelStats = asyncHandler(async (req, res) => {
     // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
 
-    const {userId} = req.user?._id
-    console.log(userId)
+    const userId = req.user?._id
+    
     if(!isValidObjectId(userId)){
         throw new ApiError(401, "Invalid Channel ID!")
     }
@@ -19,7 +19,9 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
     const totalVideos = await Video.find({owner: userId})
 
-    const totalLikes = await Like.find({video: userId})
+    const allVideos = await Video.find({owner: userId})
+
+    const totalLikes = await Like.find({video: {$in: allVideos}})
     
     return res
     .status(200)
@@ -27,7 +29,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
         new ApiResponse(200, {
             totalLikes: totalLikes.length,
             totalSubscribers: totalSubs.length,
-            totalLikes: totalLikes.length
+            totalVideos: totalVideos.length
         }, "Channel status data fetched successfully!")
     )
 
@@ -36,7 +38,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
 const getChannelVideos = asyncHandler(async (req, res) => {
     // TODO: Get all the videos uploaded by the channel
 
-    const { userId } = req.user?._id
+    const  userId  = req.user?._id
     
     if(!isValidObjectId(userId)){
         throw new ApiError(401, "Invalid User ID!")
