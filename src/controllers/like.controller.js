@@ -113,24 +113,24 @@ const getLikedVideos = asyncHandler(async (req, res) => {
 
     const userId = req.user?._id
 
-    if(!userId){
+    if (!userId) {
         throw new ApiError(401, "Unauthrized request!")
     }
 
     const videos = await Like.find({
         likedBy: userId,
-        video: {$exists: true}
+        video: { $exists: true }
     })
 
-    if(!videos.length){
+    if (!videos.length) {
         throw new ApiError(404, "No liked video found!")
     }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, videos, "Liked videos fetched successfully!")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(200, videos, "Liked videos fetched successfully!")
+        )
 
 })
 
