@@ -89,7 +89,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
         title,
         description,
         duration: videoFile.duration,
-        views: 0,
         isPublished: true,
         owner: req.user?._id
     })
